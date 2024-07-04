@@ -1,0 +1,625 @@
+---
+title: "Index"
+output:
+  learnr::tutorial:
+    progressive: true
+    allow_skip: true
+runtime: shiny_prerendered
+description: >
+  Learn how the average underpins statistical modelling`.
+---
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 16px;
+  }
+td {  /* Table  */
+  font-size: 12px;
+}
+h1.title {
+  font-size: 34px;
+  color: #000303;
+  font-family: Verdana, sans-serif, bold
+}
+h1 { /* Header 1 */
+    font-size: 20px;
+    color: #B6B6B6;
+    font-family: Helvetica-Bold, sans-serif, bold
+}
+h2 { /* Header 2 */
+    font-size: 26px;
+    color: #8B0D72;
+    font-family: Ubuntu Condensed,  sans-serif, bold
+}
+h3 { /* Header 3 */
+    font-size: 20px;
+    color: #8B0D72;
+}
+
+</style>
+
+```{r setup, include=FALSE}
+library(learnr)
+
+knitr::opts_chunk$set(echo = TRUE)
+options(tidyverse.quiet = TRUE)
+
+tutorial_options(
+  exercise.timelimit = 60,
+  # A simple checker function that just returns the message in the check chunk
+  exercise.checker = function(check_code, ...) {
+    list(
+      message = eval(parse(text = check_code)),
+      correct = logical(0),
+      type = "info",
+      location = "append"
+    )
+  }
+)
+knitr::opts_chunk$set(error = TRUE)
+```
+
+
+<br/>
+
+## Welcome!
+
+
+*It all starts with the average. If you can understand the average then you can understanding statistical modelling.*
+
+<br/>
+
+### What you'll learn
+
+In this tutorial, you will advance your understanding of the average and unlock the power of statistical modelling. You'll learn:
+
+* How we can calculate the mean using R
+* Where the normal distribution comes from
+* What the residuals are, and why they are so important
+* How residuals form the basis of parametric modelling (and statistics like $r^2$)
+* How techniques like optimisation and maximum likelihood estimation aren't so scary.
+
+Along the way you will learn a bit about R and be able to interact directly with the code.
+
+<br/>
+
+## A quick video introduction
+
+<br/>
+
+<div style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe src="https://www.loom.com/embed/a46fdedd5004468ea6c9e1510ab797fb?sid=40945e72-d8b8-4cc4-8311-7157fc61134c" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+
+<br/>
+
+```{r universal-setup, echo = FALSE}
+library(tidyverse)
+
+set.seed(45)
+my.samples <- runif(n=10, min =1, max = 10)
+my.average <- mean(my.samples)
+```
+
+
+## Central tendancy
+
+<br/>
+
+In everyday life, we use the concept of the average to express the central tendancy of something that is variable. It is this simple concept of 'middleness' which makes the average one of the most tangible statistic metrics.
+
+<br/>
+
+### Simulate some data
+
+Okay, we don't have any data... so let's make 10 random numbers.
+
+We'll use the **set.seed** function to make sure all of us get the same reproducible results, and the **runif** function to give us 10 random numbers between 0 and 10.
+
+You'll notice that in the top line we are using the 'tidyverse" package which helps us make nice graphs.
+
+```{r average-seed, exercise = TRUE, exercise.eval = FALSE}
+# load the tidyverse for graphing
+library(tidyverse)
+
+# I'm using a seed for reproducibility
+set.seed(45)
+my.samples <- runif(n = 10, min = 1, max = 10)
+
+my.samples
+```
+
+<br/>
+
+### Plotting our observations
+
+Let's use the **ggplot** function to plot our samples.
+
+The important step here is to start thinking about samples graphically...
+
+
+```{r raw, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "average-seed"}
+ggplot()+
+  geom_point(aes(x= "", y = my.samples), size = 5, alpha = 0.5, colour = "purple")+
+  xlab("Observations")+
+  ggtitle("Raw data")
+
+```
+
+<br/>
+
+### Calculate mean with R
+
+
+We can quickly calculate our mean using the R function **mean**.
+
+```{r average, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "universal-setup"}
+mean(my.samples)
+```
+
+
+<br/>
+
+### Calculate mean manually
+
+We could, however, just calculate the mean by summing the samples (using the **sum** function) and dividing by the number of the samples (using the **length** function).
+
+
+```{r average-output,  exercise = TRUE, exercise.eval = FALSE, exercise.setup = "universal-setup"}
+my.average <- sum(my.samples)/length(my.samples)
+my.average
+```
+
+<br/>
+
+### Check our manual mean matches the inbuilt R function
+
+By using the == sign we can test if two equations are equal.
+
+```{r average-logical,  exercise = TRUE, exercise.eval = FALSE, exercise.setup = "average-output"}
+my.average == mean(my.samples)
+```
+
+<br/>
+
+### Graphing the mean
+
+We can overlay the mean as a line onto our graph (using the **geom_hline** function).
+```{r ggplot-average, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "universal-setup"}
+ggplot()+
+  geom_point(aes(x= "", y = my.samples), size =5, alpha =0.5, colour = "purple")+
+  geom_hline(yintercept = my.average, colour = "red")+
+  ggtitle("Raw data + mean")+
+  xlab("Observations")
+
+```
+
+## Spread
+
+<br/>
+
+While knowing something about the 'middleness' of our data (via ther mean) is helpful usually we also want to know something about the extent of the spread of the data .
+
+<br/>
+
+### Making a data frame
+
+In real situations we usually want our data to be in a data frame format. A data frame is just a table. Usually, we would read in our data as a file or directly from a data base, however, in this situation we will make a simple data frame (using the **data.frame** function)
+
+When we do this, we can also take the opportunity to rename our variables and add a reference column.
+
+```{r dataframe, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "universal-setup"}
+
+df <- data.frame(observations = my.samples, 
+                 mean = my.average,
+                 reference = 1:10 )
+df
+```
+
+<br/>
+
+### Calculate residuals
+
+The residuals are the simply differences between the mean and the observations. They represent the unexplained variation of the observations.
+
+When we are using a data frame we can reference columns within the data frame object by using the **$** symbol in R.
+
+```{r residuals, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "dataframe"}
+df$residual <- df$observations - df$mean
+df
+```
+
+<br/>
+
+### Spread observations
+
+You might have been wondering why I had got you to create a reference column. This was simply so that we can now spread out our samples horizontally on the x-axis. *Note: there is usually no reason to regularly do this.*
+
+
+```{r graph-observations, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
+
+ggplot()+
+  geom_point(data = df, aes(x = reference, y = observations), 
+             size = 5, alpha = 0.5, colour = "purple")+
+  geom_hline(yintercept = my.average, colour = "red")+
+  ggtitle("Raw data + mean")+
+  xlab("Observations")
+
+```
+
+<br/>
+
+### Graph residuals
+
+Now, let's add some vertical lines from the mean to visualise our residuals.
+```{r graph-residuals, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
+
+ggplot()+
+  geom_point(data = df, aes(x = reference, y = observations), size = 5, alpha = 0.5, colour = "purple")+
+  geom_hline(yintercept = my.average, colour = "red")+
+  geom_segment(data = df, aes(x = reference, y = mean, yend = mean + residual), colour = "black")+
+  ggtitle("Raw data + mean + residuals")+
+  xlab("Observations")
+
+```
+
+<br/>
+
+## Variation in residuals
+
+<br/>
+
+Let's investigate those residuals further...
+
+<br/>
+
+### Average residuals
+
+We might think it might be a good idea to understand the spread in our observations by averaging the residuals. However, there is a  problem.
+
+This problem arises because the positive residuals always cancel out the negative residuals because the mean is (by definition) midway between the two.
+
+
+```{r average-residuals, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
+average.residual <- sum(df$residual)/length(df$residual)
+average.residual 
+```
+
+<br/>
+
+### Squaring the residuals 
+
+A way to get around this problem is to square the residuals. But this means we have to square root it to get it back to something which is equivalent to the average residual. We call this the standard deviation. 
+
+The following equation produces a *population level* standard deviation
+
+```{r sqrt-standard-deviation, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
+# try to square then average residuals then square root
+average.sq.residual <- sum(df$residual^2)/length(df$residual)
+sqrt(average.sq.residual)
+
+```
+
+<br/>
+
+### Bessel's correction 
+
+Unfortunately, our current standard deviation equation is biased and underestimates the standard deviation we see in samples. So to correct for this we need to alter the sample size by subtracting 1 in the first step of equation.
+
+```{r Bessel-standard-deviation, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
+average.sq.residual.cor <- sum(df$residual^2)/((length(df$residual)-1))
+average.sq.residual.cor 
+```
+
+<br/>
+
+### The variance
+
+What we have did in our last step was create an intermediate value known as the variance. We could arrive directly at this point by using the **var** function.
+
+```{r my_variance, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
+# try to square then average residuals then square root
+var(df$observations)
+
+```
+
+<br/>
+
+### The sample standard deviation
+
+Now, lets get back to our objective. We want a measure of the spread of our observations by averaging our residuals. To do this we must square root our metric (the variance).
+
+Let's see if our the square root of our metric matches the R function **sd** (used to calculate for standard deviation):
+
+```{r standard-deviation-logical, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "Bessel-standard-deviation"}
+sqrt(average.sq.residual.cor) == sd(df$observations)
+```
+
+<br/>
+
+## The normal distribution
+
+<br/>
+
+There is a very interesting property of independent random numbers.  If you repeatedly draw an equal sized set of random numbers and average each set -- provided you draw sufficient samples a histogram resembling a bell-shaped distribtuion will appear. 
+
+The resulting distribution will be very similar to the normal distribution, even if the parent distribution was not normally distributed. This is known as the **central limit theorem**, and is the reason why we often start with the assumption that a continuous variable might be normally distributed.
+
+<br/>
+
+
+### Central limit theorem
+
+
+Let's may an example using code.
+
+
+To do this we will need to define:
+
+* the number of iterations (sampling events) using an object called *iterations* 
+* make an object called *num* to store our results. 
+* use a for-loop using the **for** function to repeatedly draw a set of 10 random numbers from a uuniform distribution using the **runif** function.
+
+I recommend you experiment by changing the number of iterations and see what the effect is. I suggest you keep between 10 and 100,000 iterations.
+
+```{r normal, exercise = TRUE, exercise.eval = FALSE}
+# number of iterations
+iterations <- 10000
+
+# make a for-loop
+num <- NULL
+
+for( i in 1:iterations){
+   
+   my.random.numbers <- runif(n = 10, min = 0, max =10)
+   num[i] <- mean(my.random.numbers)
+
+}
+
+# behold - the normal distribution!!
+ggplot()+
+	geom_histogram(aes(x = num), bins=100)
+
+
+
+
+```
+<br/>
+
+### Extracting a probabililty 
+
+What we have graphed in the previous exercise is a probability distribution. Assuming your sample size is large enough, we can work out the probability of getting a certain result using percentiles by using R's **quantile** function.
+
+For example, if we wanted to find the 84th percentile we could use the following code:
+
+
+```{r quantile, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "normal"}
+quantile(num, probs = 0.84)
+```
+<br/>
+
+### Probabilty distribution: simulation 
+
+Now, if we know the probability is normally distribution in advance and the mean and standard deviation then  we can use the *rnorm* function to generate a similar outcome.
+
+```{r rnorm, exercise = TRUE, exercise.eval = FALSE}
+# number of iterations
+iterations <- 10000
+
+# use rnorm to simulate
+random.norm <- rnorm(iterations, mean = 5, sd = 0.914)
+
+# behold - the normal distribution!!
+ggplot()+
+	geom_histogram(aes(x = random.norm), bins=100)
+    
+```
+.
+<br/>
+
+### Why does this work?
+
+This works because the mean and the standard deviation are the mathematical instructions (parameters) which define the normal distribution. Because they define the distribution if we know them we can quickly estimate the probabiilty of getting certain values without having to simulate any data e.g. using the **qnorm** function.
+
+
+```{r qnorm, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "normal"}
+qnorm(0.84, mean = 5 , sd = 0.914)
+```
+<br/>
+
+
+### Standard deviations are the area under the curve
+
+You may be asking why did you use 0.84 and the 84th percentile in the examples as an example -- it seems arbitrary.
+
+Looks what happens when we subtract the mean (real) from the expected value of the 84th percentile (theoretical).
+
+Notice anything?
+
+```{r qnorm-sd, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "normal"}
+(qnorm(0.84, mean = 5 , sd = 0.914) - mean(num)) 
+```
+<br/>
+
+### Area under the curve
+
+Hopefully, you have noticed it closely matches the real standard deviation of our made up data. This is because the area under the curve of a normal distribution is actually defined by the standard deviation.
+
+```{r sd-norm, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "normal"}
+sd(num)
+```
+
+
+### For more information
+
+If you are interested in understanding the central limit theorem and the normal distribution I highly recommend 3blue1brown's explanation on youtube by clicking on the thumbnail below:
+
+<br/>
+
+[![But what is the Central Limit Theorem?](images/3blue1brownclt.png){width=80%}](https://www.youtube.com/watch?v=zeJD6dqJ5lo)
+
+## Solving the mean: brute force
+
+### Brute force approach minimisation
+
+We can use a brute force approach to find the guess which produces the minimal error. This will find an approximation of the mean
+
+```{r brute-force, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
+my.guess <- NULL
+my.error <- NULL
+
+starting.value <- 3
+
+for (i in 1:2000){
+  
+  my.guess[i] <- starting.value + (0.001 *i)
+  my.error[i] <- sum((my.samples - my.guess[i])^2)
+  
+}
+  
+index <- which(my.error == min(my.error))
+minimal.error <- my.guess[index]
+minimal.error
+```
+
+
+```{r brute-force-graph, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "brute-force"}
+
+ggplot()+
+  geom_line(aes(x = my.guess, y= my.error))+
+  geom_point(aes(x= my.guess[index], y= min(my.error)), colour = "red")
+```
+
+## Solving the mean: optimisation 
+
+### Minimisation via optimisation 
+We can use the in built R function **optim** to find the mean by minimisation.
+
+```{r min-optimisation, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
+# write a function
+objective_function <- function(mean_guess, data) {
+  sum((data - mean_guess)^2)
+}
+
+my.guess <- 3
+
+# Use optim to minimize the objective function
+output <- optim(par = my.guess, 
+      fn = objective_function, 
+      data = my.samples, 
+      method =  "BFGS")
+
+output$par
+```
+
+## Solving the mean: classical regression
+
+```{r arithmathic, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
+# define x and y
+x <- rep(0, 10)
+y <- my.samples
+
+
+# Calculate means
+mean_x <- mean(x) 
+mean_y <- mean(y)
+
+# Calculate the slope
+numerator <- sum((x - mean_x) * (y - mean_y))
+denominator <- sum((x - mean_x)^2)
+slope <- numerator / denominator
+
+slope <- if(is.na(slope) == TRUE){
+  0
+}else{
+ slope
+}
+
+# Calculate the intercept
+intercept <- mean_y - slope * mean_x
+
+intercept
+```
+
+
+## Solving the mean: using matrices
+
+###  Matrices represent a fast way to do complex maths
+
+```{r matrices, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
+
+# Step 1: make a design matrix
+A <- matrix(1, nrow=length(my.samples), ncol=1)
+
+# Step 2: Calculate the coefficients (beta)
+beta <- solve(t(A) %*% A) %*% t(A) %*% my.samples
+
+beta
+```
+
+
+## Solving the mean: maximum likelihood 
+
+Statisicians however, generally don't use simple optimisation because it can't deal with complex problems. One tool in their tool box is maximum likelihood estimation. We can then achieve MLE estimation of the mean using three steps.
+
+Unlike the previous methods this requires knowledge of the distribution family e.g. the normal distribution (aka a "gaussian distribution").
+
+* Step 1: Collect data
+* Step 2: Define the Negative Log-Likelihood Function: this function measures how well a given mean (mu) and standard deviation (sigma) explain your observed data. The negative log-likelihood is used because optimisation functions typically minimize values.
+
+ * Step 3: Optimise to Find MLE: use an optimization function to find the values of mu and sigma that minimize the negative log-likelihood, which is equivalent to maximizing the likelihood of observing your sample.
+
+### Minimisation via optimisation (using negative loglikelihood)
+
+
+
+Before we can do this we should describe what likelihood, log-likelihood, and negative log-likelihood
+
+* Likelihood: This measures how "likely" it is to observe your data given a particular model and its parameters. For example, if you have a normal distribution, the likelihood tells you how probable your observed data points are given a specific mean and variance (spread).
+
+* Log-Likelihood: Taking the logarithm of the likelihood simplifies calculations Instead of multiplying probabilities (which can get very small), you add their logarithms. This is both mathematically convenient and numerically more stable.
+
+* Negative Log-Likelihood: Optimisation algorithms typically minimize functions rather than maximize them. Since the log-likelihood represents how well the model explains the data (higher is better), taking the negative of this value allows us to frame the problem as minimization. So, minimizing the negative log-likelihood is equivalent to maximizing the log-likelihood.
+
+```{r mle-optimisation, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
+
+# Function to calculate the negative log-likelihood for a normal distribution
+neg_log_likelihood <- function(mu, data) {
+  n <- length(data)
+  sigma_squared <- var(data)
+  log_likelihood <- -(-n/2 * log(2 * pi * sigma_squared) - sum((data - mu)^2) / (2 * sigma_squared))
+  return(log_likelihood)
+}
+
+# Optimizing the negative log-likelihood to find the MLE of the mean (mu)
+mle <- optimize(neg_log_likelihood, 
+                interval = range(my.samples), 
+                data = my.samples)$minimum
+
+mle
+```
+
+## Modelling the mean
+
+### Inbuilt linear models in R (lm)
+
+We can us the linear model function (lm) in R to get the coefficients, In which the intercept is the mean.
+
+```{r lm, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
+lm(my.samples ~ 1, data = df)
+
+```
+
+
+### Inbuilt linear models in R (glm)
+
+We can us the linear model function (lm) in R to get the coefficients, In which the intercept is the mean.
+
+```{r glm, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
+glm(my.samples ~ 1, data = df, family = "gaussian")
+
+```
+## Videos
+
+<div style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe src="https://www.loom.com/embed/3aea9dd3cf1c4a7893198ab1c20320b2?sid=2f163650-2af9-4d01-90c2-567292487dad" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+
+<br/>
