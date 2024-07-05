@@ -100,6 +100,10 @@ my.samples <- runif(n=10, min =1, max = 10)
 my.average <- mean(my.samples)
 ```
 
+```{r tidy, echo = FALSE}
+library(tidyverse)
+```
+
 
 ## Central tendancy
 
@@ -340,7 +344,7 @@ sqrt(average.sq.residual.cor) == sd(df$observations)
 
 <br/>
 
-There is a very interesting property of independent random numbers.  If you repeatedly draw an equal sized set of random numbers and average each set -- provided you draw sufficient samples a histogram resembling a bell-shaped distribtuion will appear. 
+There is a very interesting property of independent random numbers.  If you repeatedly draw an equal sized set of random numbers and average each set -- provided you do sufficient trials, when you make a histogram of these means a bell-shaped distribution will appear. 
 
 The resulting distribution will be very similar to the normal distribution, even if the parent distribution was not normally distributed. This is known as the **central limit theorem**, and is the reason why we often start with the assumption that a continuous variable might be normally distributed.
 
@@ -350,25 +354,28 @@ The resulting distribution will be very similar to the normal distribution, even
 ### Central limit theorem
 
 
-Let's may an example using code.
+Let's make an example using code.
 
 
 To do this we will need to define:
 
-* the number of iterations (sampling events) using an object called *iterations* 
+* the number of trials using an object called *trials* 
 * make an object called *num* to store our results. 
-* use a for-loop using the **for** function to repeatedly draw a set of 10 random numbers from a uuniform distribution using the **runif** function.
+* use a for-loop using the **for** function to repeatedly draw a set of 10 random numbers from a uniform distribution using the **runif** function.
 
-I recommend you experiment by changing the number of iterations and see what the effect is. I suggest you keep between 10 and 100,000 iterations.
+I recommend you experiment by changing the number of trials and see what the effect is. I suggest you keep it between 10 and 100,000 trials.
 
-```{r normal, exercise = TRUE, exercise.eval = FALSE}
+```{r normal, exercise = TRUE, exercise.eval = FALSE, message=FALSE, warning=FALSE,  exercise.setup = "tidy"}
+# seeded for reproducibility
+set.seed(12)
+
 # number of iterations
-iterations <- 10000
+trials <- 100000
 
 # make a for-loop
 num <- NULL
 
-for( i in 1:iterations){
+for( i in 1:trials){
    
    my.random.numbers <- runif(n = 10, min = 0, max =10)
    num[i] <- mean(my.random.numbers)
@@ -377,10 +384,8 @@ for( i in 1:iterations){
 
 # behold - the normal distribution!!
 ggplot()+
-	geom_histogram(aes(x = num), bins=100)
-
-
-
+	geom_histogram(aes(x = num), bins=100)+
+  scale_x_continuous(breaks = 0:10, limits = c(0, 10))
 
 ```
 <br/>
@@ -399,30 +404,35 @@ quantile(num, probs = 0.84)
 
 ### Probabilty distribution: simulation 
 
-Now, if we know the probability is normally distribution in advance and the mean and standard deviation then  we can use the *rnorm* function to generate a similar outcome.
+Now, if we know the probability is normally distribution in advance and the mean and standard deviation then  we can use the **rnorm** function to generate a similar outcome.
 
-```{r rnorm, exercise = TRUE, exercise.eval = FALSE}
+```{r rnorm, exercise = TRUE, exercise.eval = FALSE, message=FALSE, warning=FALSE, exercise.setup = "tidy"}
+# seeded for reproducibility
+set.seed(43765)
+
 # number of iterations
-iterations <- 10000
+trials <- 100000
 
 # use rnorm to simulate
-random.norm <- rnorm(iterations, mean = 5, sd = 0.914)
+random.norm <- rnorm(trials, mean = 5, sd = 0.913)
 
 # behold - the normal distribution!!
 ggplot()+
-	geom_histogram(aes(x = random.norm), bins=100)
+	geom_histogram(aes(x = random.norm), bins=100)+
+  scale_x_continuous(breaks = 0:10, limits = c(0, 10))
     
 ```
 .
 <br/>
 
+
 ### Why does this work?
 
-This works because the mean and the standard deviation are the mathematical instructions (parameters) which define the normal distribution. Because they define the distribution if we know them we can quickly estimate the probabiilty of getting certain values without having to simulate any data e.g. using the **qnorm** function.
+This works because the mean and the standard deviation are the mathematical instructions (parameters) which define the normal distribution. Because they define the distribution, if we know them we can quickly estimate the probability of getting certain values without having to simulate any data e.g. using the **qnorm** function.
 
 
-```{r qnorm, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "normal"}
-qnorm(0.84, mean = 5 , sd = 0.914)
+```{r qnorm, exercise = TRUE, exercise.eval = FALSE}
+qnorm(0.84, mean = 5 , sd = 0.913)
 ```
 <br/>
 
@@ -431,12 +441,12 @@ qnorm(0.84, mean = 5 , sd = 0.914)
 
 You may be asking why did you use 0.84 and the 84th percentile in the examples as an example -- it seems arbitrary.
 
-Looks what happens when we subtract the mean (real) from the expected value of the 84th percentile (theoretical).
+Looks what happens when we subtract our mean (5) from the expected value of the 84th percentile (theoretical).
 
 Notice anything?
 
 ```{r qnorm-sd, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "normal"}
-(qnorm(0.84, mean = 5 , sd = 0.914) - mean(num)) 
+(qnorm(0.84, mean = 5 , sd = 0.913) - mean(num)) 
 ```
 <br/>
 
@@ -448,14 +458,23 @@ Hopefully, you have noticed it closely matches the real standard deviation of ou
 sd(num)
 ```
 
+In fact the area under a normal distribution curve $\pm$ 1 SD from the mean occupies ~68% of the total area. Half of 68% is 34%, so if we assume the mean is at the 50th percentile by adding 34 we arrive at the 84th percentile which should approximate the mean + 1 SD. 
+
+
+
 
 ### For more information
 
-If you are interested in understanding the central limit theorem and the normal distribution I highly recommend 3blue1brown's explanation on youtube by clicking on the thumbnail below:
+If you are interested in understanding the central limit theorem and the normal distribution I highly recommend the videos below from the [**Khan academy](https://www.khanacademy.org/) and [**3blue1brown's**](https://www.3blue1brown.com/). You can watch these by clicking on the thumbnail below:
+
+[![Central limit theorem](images/Khanacademy.png){width=80%}](https://www.youtube.com/watch?v=zeJD6dqJ5lo)
 
 <br/>
 
-[![But what is the Central Limit Theorem?](images/3blue1brownclt.png){width=80%}](https://www.youtube.com/watch?v=zeJD6dqJ5lo)
+[![But what is the Central Limit Theorem?](images/3blue1brownclt.png){width=80%}](https://www.youtube.com/watch?v=JNm3M9cqWyc)
+
+
+<br/>
 
 ## Solving the mean: brute force
 
