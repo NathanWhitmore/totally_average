@@ -396,10 +396,10 @@ What we have graphed in the previous exercise is a probability distribution. Ass
 
 For example, if we wanted to find the 84th percentile we could use the following code:
 
-
 ```{r quantile, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "normal"}
 quantile(num, probs = 0.84)
 ```
+
 <br/>
 
 ### Probabilty distribution: simulation 
@@ -465,7 +465,7 @@ In fact the area under a normal distribution curve $\pm$ 1 SD from the mean occu
 
 ### For more information
 
-If you are interested in understanding the central limit theorem and the normal distribution I highly recommend the videos below from the [**Khan academy](https://www.khanacademy.org/) and [**3blue1brown's**](https://www.3blue1brown.com/). You can watch these by clicking on the thumbnail below:
+If you are interested in understanding the central limit theorem and the normal distribution I highly recommend the videos below from the [**Khan academy**](https://www.khanacademy.org/) and [**3blue1brown**](https://www.3blue1brown.com/). You can watch these by clicking on the thumbnail below:
 
 [![Central limit theorem](images/Khanacademy.png){width=80%}](https://www.youtube.com/watch?v=zeJD6dqJ5lo)
 
