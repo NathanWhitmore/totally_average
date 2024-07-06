@@ -201,13 +201,13 @@ ggplot()+
 
 <br/>
 
-While knowing something about the 'middleness' of our data (via ther mean) is helpful usually we also want to know something about the extent of the spread of the data .
+While knowing something about the 'middleness' of our data (via the mean) is helpful, usually we also want to know something about the extent of the spread of the data.
 
 <br/>
 
 ### Making a data frame
 
-In real situations we usually want our data to be in a data frame format. A data frame is just a table. Usually, we would read in our data as a file or directly from a data base, however, in this situation we will make a simple data frame (using the **data.frame** function)
+In real situations we usually want our data to be in a data frame format. A data frame is just a table. Usually, we would read in our data as a file or directly from a data base, however, in this situation we will make a simple data frame (using the **data.frame** function).
 
 When we do this, we can also take the opportunity to rename our variables and add a reference column.
 
@@ -223,7 +223,7 @@ df
 
 ### Calculate residuals
 
-The residuals are the simply differences between the mean and the observations. They represent the unexplained variation of the observations.
+The residuals are simply the differences between the mean and the observations. They represent the unexplained variation of the observations.
 
 When we are using a data frame we can reference columns within the data frame object by using the **$** symbol in R.
 
@@ -254,7 +254,8 @@ ggplot()+
 
 ### Graph residuals
 
-Now, let's add some vertical lines from the mean to visualise our residuals.
+Now, let's add some vertical lines from the mean to visualise our residuals using the **geom_segment** function.
+
 ```{r graph-residuals, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
 
 ggplot()+
@@ -294,7 +295,7 @@ average.residual
 
 A way to get around this problem is to square the residuals. But this means we have to square root it to get it back to something which is equivalent to the average residual. We call this the standard deviation. 
 
-The following equation produces a *population level* standard deviation
+The following equation produces a *population level* standard deviation.
 
 ```{r sqrt-standard-deviation, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "residuals"}
 # try to square then average residuals then square root
@@ -365,6 +366,8 @@ To do this we will need to define:
 
 I recommend you experiment by changing the number of trials and see what the effect is. I suggest you keep it between 10 and 100,000 trials.
 
+We'll use the **geom_histogram** function to make a histogram and use the **scale_x_continuous** function to make sure our scales go from 0 -- 10,
+
 ```{r normal, exercise = TRUE, exercise.eval = FALSE, message=FALSE, warning=FALSE,  exercise.setup = "tidy"}
 # seeded for reproducibility
 set.seed(12)
@@ -384,17 +387,16 @@ for( i in 1:trials){
 
 # behold - the normal distribution!!
 ggplot()+
-	geom_histogram(aes(x = num), bins=100)+
+  geom_histogram(aes(x = num), binwidth = 0.1, colour = "white")+
   scale_x_continuous(breaks = 0:10, limits = c(0, 10))
-
 ```
 <br/>
 
-### Extracting a probabililty 
+### Extracting a percentile
 
-What we have graphed in the previous exercise is a probability distribution. Assuming your sample size is large enough, we can work out the probability of getting a certain result using percentiles by using R's **quantile** function.
+What we have graphed in the previous exercise is a probability distribution. We can work out the value associated with a certain percentiles by using R's **quantile** function.
 
-For example, if we wanted to find the 84th percentile we could use the following code:
+For example, if we wanted to find the value of 84th percentile we could use the following code:
 
 ```{r quantile, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "normal"}
 quantile(num, probs = 0.84)
@@ -404,7 +406,7 @@ quantile(num, probs = 0.84)
 
 ### Probabilty distribution: simulation 
 
-Now, if we know the probability is normally distribution in advance and the mean and standard deviation then  we can use the **rnorm** function to generate a similar outcome.
+Now, if we know the probability is normally distribution in advance and the mean and standard deviation then we can use the **rnorm** function to generate a similar distribution without a for loop.
 
 ```{r rnorm, exercise = TRUE, exercise.eval = FALSE, message=FALSE, warning=FALSE, exercise.setup = "tidy"}
 # seeded for reproducibility
@@ -418,7 +420,7 @@ random.norm <- rnorm(trials, mean = 5, sd = 0.913)
 
 # behold - the normal distribution!!
 ggplot()+
-	geom_histogram(aes(x = random.norm), bins=100)+
+  geom_histogram(aes(x = random.norm), binwidth = 0.1, colour = "white")+
   scale_x_continuous(breaks = 0:10, limits = c(0, 10))
     
 ```
@@ -439,7 +441,7 @@ qnorm(0.84, mean = 5 , sd = 0.913)
 
 ### Standard deviations are the area under the curve
 
-You may be asking why did you use 0.84 and the 84th percentile in the examples as an example -- it seems arbitrary.
+You may be asking why did you use 0.84 (the 84th percentile) in the examples as an example -- it seems arbitrary.
 
 Looks what happens when we subtract our mean (5) from the expected value of the 84th percentile (theoretical).
 
@@ -452,7 +454,7 @@ Notice anything?
 
 ### Area under the curve
 
-Hopefully, you have noticed it closely matches the real standard deviation of our made up data. This is because the area under the curve of a normal distribution is actually defined by the standard deviation.
+Hopefully, you have noticed it closely matches the real standard deviation of our made up data. This is because the area under the curve of a normal distribution is defined by the standard deviation.
 
 ```{r sd-norm, exercise = TRUE, exercise.eval = FALSE, exercise.setup = "normal"}
 sd(num)
@@ -460,6 +462,54 @@ sd(num)
 
 In fact the area under a normal distribution curve $\pm$ 1 SD from the mean occupies ~68% of the total area. Half of 68% is 34%, so if we assume the mean is at the 50th percentile by adding 34 we arrive at the 84th percentile which should approximate the mean + 1 SD. 
 
+Importantly, 95% of the values below the curve are captured within the mean $\pm$ 1.96 SD. The value of **1.96** is crucial when it comes to the estimation of 95% confidence intervals -- to the extent it is worth memorising.
+
+<br/>
+
+### Let's overlay our simulation and distribution
+
+Here we'll use the **"stat_function** in combination with the **dnorm** function to overlay the shape of the normal distribution.
+
+*Note: we have to multiply the **dnorm** result by the number of trials and the binwidth to scale its size correctly to our graph.*
+
+```{r compare, exercise = TRUE, exercise.eval = FALSE, message=FALSE, warning=FALSE,  exercise.setup = "normal"}
+ggplot()+
+  geom_histogram(aes(x = num), binwidth= 0.1, colour = "white")+
+  scale_x_continuous(breaks = 0:10, limits = c(0, 10))+
+  stat_function(fun = function(x) 
+    dnorm(x, mean = 5, sd = sd(num)) * trials * 0.1, colour = "firebrick", lwd = 1)
+```
+
+<br/>
+
+### Effects: sample size and number of trials
+
+In this code I'd recommend you play around with the number of trials and the sample size (n) in the runif function. 
+
+* How many trials do you need to approximate the normal distribution?
+* At what sample size does the distribution appear to become unreliable?
+
+```{r normalplay, exercise = TRUE, exercise.eval = FALSE, message=FALSE, warning=FALSE,  exercise.setup = "universal-setup"}
+
+# number of iterations
+trials <- 100
+
+# make a for-loop
+my.num <- NULL
+
+for( i in 1:trials){
+   
+   my.random.numbers <- runif(n = 10, min = 0, max =10)
+   my.num[i] <- mean(my.random.numbers)
+
+}
+
+# plot
+ggplot()+
+  geom_histogram(aes(x = my.num), binwidth= 0.1, colour = "white")+
+  stat_function(fun = function(x) dnorm(x, mean = 5, sd = sd(my.num)) * trials * 0.1, colour = "firebrick", lwd = 1)+
+  scale_x_continuous(breaks = 0:10, limits = c(0, 10))
+```
 
 
 
